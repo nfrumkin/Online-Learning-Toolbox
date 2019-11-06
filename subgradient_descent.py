@@ -1,56 +1,72 @@
 import numpy as np
 
 class sgd:
+    # ==== Notation ====
+    # h = hypothesis
+    # z_t = data
+    # y_t = true label
+    # hypothesis max-affine is given by argmax(h*z_t)
+    # gnd truth max-affine is y_t
+    
     t = 0
     def __init__(self, loss='l1', L=1000):
         self.loss = loss
         self.L = L
         self.t = 0
 
-    def step(self, x_t, z_t, y_t, eta=-1):
+    def step(self, h_t, z_t, y_t, eta=-1):
         if eta == -1:
             eta = np.sqrt(self.t)
         if self.loss == 'l1':
-            loss_t = self.l1_loss(x_t, z_t, y_t)
-            g_loss = self.g_l1_loss(x_t, z_t, y_t)
+            loss_t = self.l1_loss(h_t, z_t, y_t)
+            g_loss = self.g_l1_loss(h_t, z_t, y_t)
         elif this.loss == 'l2':
-            loss_t = self.l2_loss(x_t, z_t, y_t)
-            g_loss = self.g_l2_loss(x_t, z_t, y_t)
+            loss_t = self.l2_loss(h_t, z_t, y_t)
+            g_loss = self.g_l2_loss(h_t, z_t, y_t)
         
-        x_new = self.greedy_projection(x_t - eta*g_loss)
+        h_new = self.greedy_projection(h_t - eta*g_loss)
         
         self.t = self.t + 1
         
-        return loss_t, x_new
+        return loss_t, h_new
 
-    def l1_loss(self, x_t, z_t, y_t):
-        return np.absolute(y_t - np.max(np.multiply(x_t,z_t)))
+    def l1_loss(self, h_t, z_t, y_t):
+        return np.absolute(y_t - self.max_affine(h_t,z_t))
 
-    def l2_loss(self, x_t, z_t, y_t):
+    def l2_loss(self, h_t, z_t, y_t):
         raise NotImplementedError("todo.")
 
     # gradient of l1 loss
-    def g_l1_loss(self, x_t, z_t, y_t):
-        g_loss = y_t - np.max(np.multiply(x_t, z_t))
-        g_loss = g_loss / np.absolute(y_t - np.max(np.multiply(x_t, z_t)))
-        k = self.max_affine_hyperplane(x_t, z_t)
+    def g_l1_loss(self, h_t, z_t, y_t):
+
+        k = self.max_affine_number(h_t, z_t)
+        max_val = self.max_affine(h_t, z_t)
         
-        v = np.zeros(z_t.shape)
-        v[k] = z_t[k]
-        g_loss = np.multiply(g_loss, v)
+        g_loss = np.zeros(h_t.shape)
+        import pdb
+        pdb.set_trace()
+
+        g_loss[k] = np.absolute(y_t - max_val)*h_t[]
+
         return g_loss
     
-    def max_affine_hyperplane(self, a, x):
-        return np.argmax(np.multiply(a,x))
+    def max_affine(self, h_t, z):
+        # import pdb
+        # pdb.set_trace()
+        vals = np.dot(h_t[:,:-1],z)+h_t[:,-1]
+        return np.max(vals)
+
+    def max_affine_number(self, h, z):
+        return np.argmax(np.multiply(h, z))
     # gradient of l2 loss
-    def g_l2_loss(self, x_t, z_t, y_t):
+    def g_l2_loss(self, h_t, z_t, y_t):
         raise NotImplementedError("todo.")
 
     # greedy projection
-    def greedy_projection(self, x):
+    def greedy_projection(self, h):
         # projection based on the convex set of
         # max-affine functions where the norm is bounded
-        for i in range(0,len(x)):
-            if np.absolute(x[:,i]) > self.L:
-                x[:,i] = self.L
-        return x
+        for i in range(0,len(h)):
+            if np.absolute(h[:,i]) > self.L:
+                h[:,i] = self.L
+        return h
