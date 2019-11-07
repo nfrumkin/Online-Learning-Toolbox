@@ -74,4 +74,6 @@ class sgd:
         for row in range(0,h.shape[0]):
             if np.sum(np.absolute(h[row,:-1])) > self.L:
                 raise NotImplementedError("todo: apply greedy projection onto L-norm ball")
+                # https://math.stackexchange.com/questions/2327504/orthogonal-projection-onto-the-l-1-unit-ball
+                # solve by QP to min euclidean distance s.t. linear constraints
         return h
