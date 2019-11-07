@@ -41,12 +41,17 @@ class sgd:
 
         k = self.max_affine_number(h_t, z_t)
         max_val = self.max_affine(h_t, z_t)
-        
-        g_loss = np.zeros(h_t.shape)
-        import pdb
-        pdb.set_trace()
 
-        g_loss[k] = np.absolute(y_t - max_val)*h_t[]
+        g_loss = np.zeros(h_t.shape)
+
+        abs_val = np.absolute(y_t - max_val)
+        sign = abs_val/(y_t - max_val)
+
+        # assign b_k to be the opposite of the abs sign
+        g_loss[k,-1] = (-1)*sign
+        
+        # assign a_k to be the sign multiplied by z_t
+        g_loss[k,:-1] = sign*z_t
 
         return g_loss
     
@@ -66,7 +71,7 @@ class sgd:
     def greedy_projection(self, h):
         # projection based on the convex set of
         # max-affine functions where the norm is bounded
-        for i in range(0,len(h)):
-            if np.absolute(h[:,i]) > self.L:
-                h[:,i] = self.L
+        for row in range(0,h.shape[0]):
+            if np.sum(np.absolute(h[row,:-1])) > self.L:
+                raise NotImplementedError("todo: apply greedy projection onto L-norm ball")
         return h
