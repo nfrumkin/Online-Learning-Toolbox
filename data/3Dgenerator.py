@@ -4,6 +4,13 @@ from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import numpy as np
 import random
+import pickle
+
+def save_data(X,y,filename):
+    f = open(filename, 'wb')
+    pickle.dump(X,f)
+    pickle.dump(y,f)
+    f.close()
 
 # graph for each convex function and corresponding data
 def graph_function_subplots(num_functions, x1, x2, z, x1_mesh, x2_mesh, z_meshs, titles):
@@ -73,5 +80,7 @@ if __name__ == "__main__":
     # add gaussian noise to each convex function
     noise = np.random.normal(mu, sigma, size=(convex_functions[0].shape))
     noisy_functions = [np.add(y, noise) for y in convex_functions]
+    
+    save_data(X,noisy_functions, "3d_data.pkl")
     graph_function_subplots(num_functions, X[:,0], X[:,1], convex_functions, x1_v, x2_v, mesh_functions, titles)
     graph_all_functions(num_functions, x1_v, x2_v, mesh_functions, titles)

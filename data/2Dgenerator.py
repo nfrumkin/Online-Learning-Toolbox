@@ -1,7 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+import pickle
 
+def save_data(X,y,filename):
+    f = open(filename, 'wb')
+    pickle.dump(X,f)
+    pickle.dump(y,f)
+    f.close()
 def graph_function_subplots(num_functions, X, y_functions, y_data, titles):
     fig = plt.figure()
     plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.5)
@@ -30,6 +36,7 @@ if __name__ == "__main__":
     max_val = 5
     mu = 0      # gaussian distribution params
     sigma = 4
+    np.random.seed(1)   # set seed
 
     X = np.linspace(min_val,max_val,num=100)
 
@@ -38,6 +45,7 @@ if __name__ == "__main__":
     noise = np.random.normal(mu, sigma, size=(convex_functions[0].shape))
     noisy_functions = [np.add(y, noise) for y in convex_functions]
 
+    save_data(X,noisy_functions, "2d_data.pkl")
     titles = ["x^2", "x^4", "x^2 + x^4", "abs(x^3)", "0.5x^4", "0.5x^2"]
 
     graph_function_subplots(num_functions, X, convex_functions, noisy_functions, titles)
