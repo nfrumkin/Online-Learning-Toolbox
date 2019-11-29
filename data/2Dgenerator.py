@@ -2,46 +2,43 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 
+def graph_function_subplots(num_functions, X, y_functions, y_data, titles):
+    fig = plt.figure()
+    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.5)
 
-X = np.linspace(-6,6,num=100)
+    for i in range(0,num_functions):
+        ax = fig.add_subplot(3,2,i+1)
 
-# add gaussian noise
-mu = 0
-sigma = 4
+        ax.plot(X,y_functions[i])
+        ax.plot(X,y_data[i], "*")
+        ax.set_title(titles[i])
 
-convex_functions = [X**2, X**4, X**2+X**4, np.abs(X**3), 0.5*X**4, 0.5*X**2]
-title_names = ["x^2", "x^4", "x^2 + x^4", "abs(x^3)", "0.5x^4", "0.5x^2"]
-fig, ax = plt.subplots(3,2)
-i = 0
-j = 0
+    plt.show()
 
-eft  = 0.125  # the left side of the subplots of the figure
-right = 0.9    # the right side of the subplots of the figure
-bottom = 0.1   # the bottom of the subplots of the figure
-top = 5      # the top of the subplots of the figure
-wspace = 0.2   # the amount of width reserved for blank space between subplots
-hspace = 0.5   # the amount of height reserved for white space between subplots
-plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.5)
-for y in convex_functions:
-    noise = np.random.normal(mu, sigma, size=(y.shape))
-    y_noisy = np.add(y,noise)
-    ax[i,j].plot(X,y)
-    ax[i,j].plot(X,y_noisy, "*")
-    ax[i,j].set_title(title_names[2*i+j])
-    if j < 1 :
-        j = j+1
-    elif i < 2:
-        j = 0
-        i = i+1
-    else:
-        print("error: exceed subplot range")
+def graph_all_functions(X,y, titles):
+    fig = plt.figure()
+    for y in convex_functions:
+        plt.plot(X,y)
+    
+    plt.legend(titles)
+    plt.show()
 
-plt.show()
+if __name__ == "__main__":
+    # parameters
+    num_functions = 6
+    min_val = -5        # function boundaries
+    max_val = 5
+    mu = 0      # gaussian distribution params
+    sigma = 4
 
-for y in convex_functions:
-    plt.plot(X,y)
-    plt.legend(title_names)
+    X = np.linspace(min_val,max_val,num=100)
 
-plt.show()
+    convex_functions = [X**2, X**4, X**2+X**4, np.abs(X**3), 0.5*X**4, 0.5*X**2]
+    # add gaussian noise to each convex function
+    noise = np.random.normal(mu, sigma, size=(convex_functions[0].shape))
+    noisy_functions = [np.add(y, noise) for y in convex_functions]
 
+    titles = ["x^2", "x^4", "x^2 + x^4", "abs(x^3)", "0.5x^4", "0.5x^2"]
 
+    graph_function_subplots(num_functions, X, convex_functions, noisy_functions, titles)
+    graph_all_functions(X,convex_functions,titles)
