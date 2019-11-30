@@ -48,7 +48,7 @@ def graph_loss(losses):
 if __name__ == "__main__":
     loss = "l1"
     losses = []
-    L = 100
+    L = 1
     k = 3
     min_val = -1
     max_val = 1

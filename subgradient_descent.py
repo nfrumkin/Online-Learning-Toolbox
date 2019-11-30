@@ -83,9 +83,30 @@ class sgd:
     def greedy_projection(self, h):
         # projection based on the convex set of
         # max-affine functions where the norm is bounded
+        print(h)
         for row in range(0,h.shape[0]):
             if np.sum(np.absolute(h[row,:-1])) > self.L:
-                raise NotImplementedError("todo: apply greedy projection onto L-norm ball")
                 # https://math.stackexchange.com/questions/2327504/orthogonal-projection-onto-the-l-1-unit-ball
                 # solve by QP to min euclidean distance s.t. linear constraints
+                # https://cvxopt.org/userguide/coneprog.html
+                
+                raiseNotImplementedError("errors with qp")
+                h_d = h.shape[1]
+                # quadratic objective
+                P = 2*np.eye(h_d, h_d)
+                q = -2*np.abs(h[row,:])
+
+                # equality constraints
+                A = np.vstack([np.ones((1,h_d)), np.zeros((h_d-1,h_d))])
+                b = np.zeros((h_d,1))
+                b[0] = 1
+
+                print("P: ", P, "\n Q: ", q, "\n A: ", A, "\n b: ", b)
+                soln = solvers.qp(matrix(P),matrix(q), None, None, matrix(A), matrix(b))
+
+                # account for sign of each component
+                sign_values = np.sign(h[row,:])
+                new_h = np.multiply(sign_values, soln['x'])
+                h[row,:] = new_h
+
         return h
