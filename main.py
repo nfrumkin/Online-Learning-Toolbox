@@ -1,13 +1,15 @@
 from subgradient_descent import sgd
 import numpy as np
 import matplotlib.pyplot as plt
+import pickle
 
-k = 3
-dims = 2
-min_val = -1
-max_val = 1
-T = 200
-DEBUG = True
+
+def load_data(filename, func_number):
+    f = open(filename, 'rb')
+    X = pickle.load(f)
+    y = pickle.load(f)
+    T, dims = X.shape
+    return X,y[func_number], T, dims
 
 def generate_data():
     np.random.seed(0)
@@ -46,19 +48,24 @@ def graph_loss(losses):
 if __name__ == "__main__":
     loss = "l1"
     losses = []
-    L = 1000
+    L = 100
+    k = 3
+    min_val = -1
+    max_val = 1
+    DEBUG = False
+    func_number = 0 # quadratic x**2
+    
+    X, y, T, dims = load_data("data/2d_data.pkl",0)
+    graph_1d(X,y)
 
     # initialize h_t hypothesis
     # row corresponds to a given hyperplane
     # columns 0..dims are hyperplane slopes
     # last column are constants
     h_t = np.zeros((k,dims+1))
-    
-    X, y = generate_data()
-    graph_1d(X,y)
 
     model = sgd(loss, L)
-
+    print("T: ", T)
     for t in range(1,T):
         print(t)
         x_t = X[t,:]
