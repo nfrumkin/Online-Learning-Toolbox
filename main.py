@@ -2,7 +2,7 @@ from subgradient_descent import sgd
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
-
+import imageio
 
 def load_data(filename, func_number):
     f = open(filename, 'rb')
@@ -11,11 +11,11 @@ def load_data(filename, func_number):
     T, dims = X.shape
     return X,y[func_number], T, dims
 
-def generate_data():
+def generate_data(T, dims):
     np.random.seed(0)
     x = np.random.uniform(min_val, max_val, size = (T,dims) )
-    y = np.sum(x**2, axis=1)
-    return x,y  
+    y = np.sum(np.abs(0.5*x**2), axis=1)
+    return x,y, T, dims
 
 def graph_1d(x,y):
     if dims != 1:
@@ -35,37 +35,42 @@ def graph_hypothesis(x,y,h,t):
         y_vals = h[i,0]*x + h[i,-1]
         plt.plot(x,y_vals)
 
-    plt.plot(x,y,"*")
-    plt.savefig("graphs/max_affine_" + str(t) + ".png")
+    plt.plot(x[:t],y[:t],"*")
+    plt.ylim([-5,25])
+    plt.title("Timestep: "+str(t))
+    fname = "graphs/max_affine_"+str(t)+".png"
+    plt.savefig(fname)
     plt.close()
+    return fname
 
-def graph_loss(losses):
+def graph_loss(losses,T):
     numbers = range(1,T)
     plt.plot(numbers,losses)
+    plt.xlabel("iteration")
+    plt.ylabel("loss")
+    plt.title("Iteration vs. Loss")
     plt.savefig("loss.png")
     plt.close()
 
-if __name__ == "__main__":
-    loss = "l1"
-    losses = []
-    L = 1
-    k = 3
-    min_val = -1
-    max_val = 1
-    DEBUG = False
-    func_number = 0 # quadratic x**2
-    
-    X, y, T, dims = load_data("data/2d_data.pkl",0)
-    graph_1d(X,y)
+def make_gif(filenames):
+    images = []
 
-    # initialize h_t hypothesis
+    for filename in filenames:
+        images.append(imageio.imread(filename))
+    imageio.mimsave('hypothesis.gif', images)
+
+def train_model(X, y, T, dims, graph_frequency=100):
+    # init h_t hypothesis
     # row corresponds to a given hyperplane
     # columns 0..dims are hyperplane slopes
     # last column are constants
     h_t = np.zeros((k,dims+1))
-
+    
+    # init model
     model = sgd(loss, L)
-    print("T: ", T)
+    losses = []
+    filenames = []
+
     for t in range(1,T):
         print(t)
         x_t = X[t,:]
@@ -73,12 +78,28 @@ if __name__ == "__main__":
 
         loss_t, h_t = model.step(h_t, x_t, y_t)
         losses.append(loss_t)
-        if DEBUG:
-            # graph_hypothesis(X,y,h_t,t)
-            print("x_t: ", x_t, ", y_t: ", y_t)
-            print("loss: ", loss_t)
-            print("h_t: ", h_t)
+        if t%graph_frequency == 0:
+            fname=graph_hypothesis(X,y,h_t,t)
+            filenames.append(fname)
+    
+    make_gif(filenames)
+    return losses
+    
+    
+if __name__ == "__main__":
+    loss = "l1"
+    L = 1
+    k = 10
+    min_val = -5
+    max_val = 5
+    DEBUG = False
+    func_number = 0 # quadratic x**2
+    T = 2000
+    dims = 1
+    # X, y, T, dims = load_data("data/2d_data.pkl",0)
+    X, y, T, dims = generate_data(T, dims)
+    graph_1d(X,y)
 
-    # if DEBUG:
-    graph_hypothesis(X,y,h_t,T)
-    graph_loss(losses)
+    losses = train_model(X, y, T, dims, graph_frequency=25)
+    # graph_hypothesis(X,y,h_t,T)
+    graph_loss(losses, T)
