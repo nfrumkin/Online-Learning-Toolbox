@@ -1,8 +1,10 @@
 from subgradient_descent import sgd
+import polytope_algorithm
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import imageio
+from polytope_algorithm import step_all
 
 def load_data(filename, func_number):
     f = open(filename, 'rb')
@@ -12,9 +14,11 @@ def load_data(filename, func_number):
     return X,y[func_number], T, dims
 
 def generate_data(T, dims):
-    np.random.seed(0)
+    np.random.seed(1)
     x = np.random.uniform(min_val, max_val, size = (T,dims) )
-    y = np.sum(np.abs(0.5*x**2), axis=1)
+    x[0] = min_val
+    x[1] = max_val
+    y = np.sum(np.abs(x**3), axis=1)
     return x,y, T, dims
 
 def graph_1d(x,y):
@@ -43,12 +47,13 @@ def graph_hypothesis(x,y,h,t):
     plt.close()
     return fname
 
-def graph_loss(losses,T):
+def graph_loss(losses1, losses2, T):
     numbers = range(1,T)
-    plt.plot(numbers,losses)
+    plt.plot(numbers,losses1, numbers,losses2)
     plt.xlabel("iteration")
     plt.ylabel("loss")
     plt.title("Iteration vs. Loss")
+    plt.legend(["polytope algorithm", "online gradient descent"])
     plt.savefig("loss.png")
     plt.close()
 
@@ -67,7 +72,7 @@ def train_model(X, y, T, dims, graph_frequency=100):
     h_t = np.zeros((k,dims+1))
     
     # init model
-    model = sgd(loss, L)
+    model = sgd(X,y,loss, L)
     losses = []
     filenames = []
 
@@ -82,7 +87,7 @@ def train_model(X, y, T, dims, graph_frequency=100):
             fname=graph_hypothesis(X,y,h_t,t)
             filenames.append(fname)
     
-    make_gif(filenames)
+    # make_gif(filenames)
     return losses
     
     
@@ -94,12 +99,14 @@ if __name__ == "__main__":
     max_val = 5
     DEBUG = False
     func_number = 0 # quadratic x**2
-    T = 2000
+    T = 200
     dims = 1
     # X, y, T, dims = load_data("data/2d_data.pkl",0)
     X, y, T, dims = generate_data(T, dims)
     graph_1d(X,y)
 
-    losses = train_model(X, y, T, dims, graph_frequency=25)
+    losses1 = train_model(X, y, T, dims, graph_frequency=25)
+
+    losses2 = step_all(X,y,T)
     # graph_hypothesis(X,y,h_t,T)
-    graph_loss(losses, T)
+    graph_loss(losses1, losses2, T)
